@@ -1,12 +1,15 @@
-OPT ?= -g2 -O3
-#OPT ?= -g2
+#OPT ?= -g
+OPT ?= -g2
 
 SRC_DIR = ./src
 TOOLS_DIR = ./tools
 TEST_DIR = ./test
+INTERFACE_DIR = ./interface
 
 INCLUDES = -I ${SRC_DIR}/include \
-		   -I ${TEST_DIR}/include
+		   -I ${TEST_DIR}/include \
+                   -I ${INTERFACE_DIR}/include 
+
 GTEST_INCLUDES = -I ${TEST_DIR}/include/gtest ${TEST_DIR}/lib/libgmock.a
 
 LIBS = -pthread -lboost_thread -lboost_system 
@@ -25,6 +28,10 @@ COMMON_OBJECTS = ${CORE_C_OBJ} ${CORE_CXX_OBJ}
 
 TEST_SRC = ${TEST_DIR}/test_base.cc
 TEST_OBJECTS  = $(patsubst %.cc, %.o, ${TEST_SRC})
+
+
+INTERFACE_SRC = ${INTERFACE_DIR}/libkvdb.c
+INTERFACE_OBJECTS  = $(patsubst %.c, %.o, ${INTERFACE_DIR})
 
 TOOLS_LIST = \
 		${TOOLS_DIR}/DbTest \
@@ -46,7 +53,7 @@ TESTS_LIST =  ${TEST_DIR}/test_block_manager \
 		${TEST_DIR}/test_iterator\
 		${TEST_DIR}/test_cache
 
-PROGNAME := ${TOOLS_LIST} ${SHARED_LIB}
+PROGNAME := ${TOOLS_LIST} ${SHARED_LIB} ./interface/libckvdb.so
 
 .PHONY : all
 all: ${PROGNAME}
@@ -62,11 +69,18 @@ $(CORE_CXX_OBJ): %.o: %.cc
 $(CORE_C_OBJ): %.o: %.c
 	${CC} ${C_FLAGS} ${INCLUDES} -c $< -o $@
 
+$(INTERFACE_OBJECTS): %.o: %.c
+	${CXX} ${CXX_FLAGS} ${INCLUDES} -c $< -o $@
+
 $(TEST_OBJECTS): %.o: %.cc
 	${CXX} ${CXX_FLAGS} ${INCLUDES} -c $< -o $@
 
 ${SRC_DIR}/libhlkvds.so: ${COMMON_OBJECTS}
 	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -shared -o $@ ${LIBS}
+
+${INTERFACE_DIR}/libckvdb.so: ./interface/libckvdb.c
+	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -shared -o $@ ${LIBS}
+#	g++ -std=c++11 -I ./interface/include/ ./interface/libckvdb.c -fPIC -shared -o ./interface/libckvdb.so
 
 ${TOOLS_DIR}/Benchmark: ${TOOLS_DIR}/Benchmark.cc ${COMMON_OBJECTS}
 	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -o $@ ${LIBS}
@@ -102,7 +116,7 @@ ${TEST_DIR}/test_cache: ${TEST_DIR}/test_cache.cc ${COMMON_OBJECTS} $(TEST_OBJEC
 
 .PHONY : clean
 clean:
-	rm -fr $(COMMON_OBJECTS) $(TEST_CXX_OBJ)
+	rm -fr $(COMMON_OBJECTS) $(TEST_CXX_OBJ) 
 	rm -fr $(PROGNAME)
 	rm -fr $(TESTS_LIST)
 
@@ -110,8 +124,11 @@ clean:
 install:
 	cp -r src/include/hlkvds /usr/local/include
 	cp src/libhlkvds.so /usr/local/lib
+	cp -r interface/include/ /usr/local/include/hlkvds/interface
+	cp interface/libckvdb.so /usr/local/lib/
 
 .PHONY : uninstall
 uninstall:
 	rm -fr /usr/local/include/hlkvds
 	rm -f /usr/local/lib/libhlkvds.so
+	rm -f /usr/local/lib/libckvdb.so
