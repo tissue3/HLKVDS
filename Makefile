@@ -4,9 +4,11 @@ OPT ?= -g2 -O3
 SRC_DIR = ./src
 TOOLS_DIR = ./tools
 TEST_DIR = ./test
+INTERFACE_DIR = ./interface
 
 INCLUDES = -I ${SRC_DIR}/include \
-		   -I ${TEST_DIR}/include
+		   -I ${TEST_DIR}/include\
+			-I ${INTERFACE_DIR}/include
 GTEST_INCLUDES = -I ${TEST_DIR}/include/gtest ${TEST_DIR}/lib/libgmock.a
 
 LIBS = -pthread -lboost_thread -lboost_system 
@@ -26,6 +28,9 @@ COMMON_OBJECTS = ${CORE_C_OBJ} ${CORE_CXX_OBJ}
 TEST_SRC = ${TEST_DIR}/test_base.cc
 TEST_OBJECTS  = $(patsubst %.cc, %.o, ${TEST_SRC})
 
+INTERFACE_SRC = ${INTERFACE_DIR}/libckvdb.c
+INTERFACE_OBJECTS  = $(patsubst %.c, %.o, ${INTERFACE_SRC})
+
 TOOLS_LIST = \
 		${TOOLS_DIR}/DbTest \
 		${TOOLS_DIR}/CreateDb \
@@ -33,18 +38,21 @@ TOOLS_LIST = \
 		${TOOLS_DIR}/Benchmark \
 		${TOOLS_DIR}/LoadDB
 
-SHARED_LIB = ${SRC_DIR}/libhlkvds.so
+SHARED_LIB = ${SRC_DIR}/libhlkvds.so \
+		${INTERFACE_DIR}/libckvdb.so
 
-TESTS_LIST =  ${TEST_DIR}/test_block_manager \
-	    ${TEST_DIR}/test_index_manager \
-	    ${TEST_DIR}/test_operations \
-	    ${TEST_DIR}/test_rmd \
-	    ${TEST_DIR}/test_segment_manager \
-	    ${TEST_DIR}/test_db \
-	    ${TEST_DIR}/test_status\
-		${TEST_DIR}/test_batch\
-		${TEST_DIR}/test_iterator\
-		${TEST_DIR}/test_cache
+TESTS_LIST = \
+		${TEST_DIR}/test_rmd \
+		${TEST_DIR}/test_db \
+		${TEST_DIR}/test_operations \
+		${TEST_DIR}/test_batch \
+		${TEST_DIR}/test_iterator \
+		${TEST_DIR}/test_status \
+		${TEST_DIR}/test_superblock_manager \
+		${TEST_DIR}/test_index_manager \
+		${TEST_DIR}/test_metastor \
+		${TEST_DIR}/test_datastor \
+		${TEST_DIR}/test_readcache
 
 PROGNAME := ${TOOLS_LIST} ${SHARED_LIB}
 
@@ -62,8 +70,14 @@ $(CORE_CXX_OBJ): %.o: %.cc
 $(CORE_C_OBJ): %.o: %.c
 	${CC} ${C_FLAGS} ${INCLUDES} -c $< -o $@
 
+$(INTERFACE_OBJECTS): %.o: %.c
+	${CXX} ${CXX_FLAGS} ${INCLUDES} -c $< -o $@
+
 $(TEST_OBJECTS): %.o: %.cc
 	${CXX} ${CXX_FLAGS} ${INCLUDES} -c $< -o $@
+
+${INTERFACE_DIR}/libckvdb.so: ${INTERFACE_OBJECTS}
+	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -shared -o $@ ${LIBS}
 
 ${SRC_DIR}/libhlkvds.so: ${COMMON_OBJECTS}
 	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -shared -o $@ ${LIBS}
@@ -81,23 +95,25 @@ ${TOOLS_DIR}/LoadDB: ${TOOLS_DIR}/LoadDB.cc ${COMMON_OBJECTS}
 
 ${TEST_DIR}/test_rmd: ${TEST_DIR}/test_rmd.cc ${COMMON_OBJECTS} $(TEST_OBJECTS)
 	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -o $@ ${LIBS} ${GTEST_INCLUDES}
-${TEST_DIR}/test_block_manager: ${TEST_DIR}/test_block_manager.cc ${COMMON_OBJECTS} $(TEST_OBJECTS)
-	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -o $@ ${LIBS} ${GTEST_INCLUDES}
-${TEST_DIR}/test_index_manager: ${TEST_DIR}/test_index_manager.cc ${COMMON_OBJECTS} $(TEST_OBJECTS)
-	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -o $@ ${LIBS} ${GTEST_INCLUDES}
-${TEST_DIR}/test_operations: ${TEST_DIR}/test_operations.cc ${COMMON_OBJECTS} $(TEST_OBJECTS)
-	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -o $@ ${LIBS} ${GTEST_INCLUDES}
-${TEST_DIR}/test_segment_manager: ${TEST_DIR}/test_segment_manager.cc ${COMMON_OBJECTS} $(TEST_OBJECTS)
-	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -o $@ ${LIBS} ${GTEST_INCLUDES}
 ${TEST_DIR}/test_db: ${TEST_DIR}/test_db.cc ${COMMON_OBJECTS} $(TEST_OBJECTS)
 	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -o $@ ${LIBS} ${GTEST_INCLUDES}
-${TEST_DIR}/test_status: ${TEST_DIR}/test_status.cc ${COMMON_OBJECTS} $(TEST_OBJECTS)
+${TEST_DIR}/test_operations: ${TEST_DIR}/test_operations.cc ${COMMON_OBJECTS} $(TEST_OBJECTS)
 	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -o $@ ${LIBS} ${GTEST_INCLUDES}
 ${TEST_DIR}/test_batch: ${TEST_DIR}/test_batch.cc ${COMMON_OBJECTS} $(TEST_OBJECTS)
 	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -o $@ ${LIBS} ${GTEST_INCLUDES}
 ${TEST_DIR}/test_iterator: ${TEST_DIR}/test_iterator.cc ${COMMON_OBJECTS} $(TEST_OBJECTS)
 	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -o $@ ${LIBS} ${GTEST_INCLUDES}
-${TEST_DIR}/test_cache: ${TEST_DIR}/test_cache.cc ${COMMON_OBJECTS} $(TEST_OBJECTS)
+${TEST_DIR}/test_status: ${TEST_DIR}/test_status.cc ${COMMON_OBJECTS} $(TEST_OBJECTS)
+	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -o $@ ${LIBS} ${GTEST_INCLUDES}
+${TEST_DIR}/test_superblock_manager: ${TEST_DIR}/test_superblock_manager.cc ${COMMON_OBJECTS} $(TEST_OBJECTS)
+	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -o $@ ${LIBS} ${GTEST_INCLUDES}
+${TEST_DIR}/test_index_manager: ${TEST_DIR}/test_index_manager.cc ${COMMON_OBJECTS} $(TEST_OBJECTS)
+	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -o $@ ${LIBS} ${GTEST_INCLUDES}
+${TEST_DIR}/test_metastor: ${TEST_DIR}/test_metastor.cc ${COMMON_OBJECTS} $(TEST_OBJECTS)
+	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -o $@ ${LIBS} ${GTEST_INCLUDES}
+${TEST_DIR}/test_datastor: ${TEST_DIR}/test_datastor.cc ${COMMON_OBJECTS} $(TEST_OBJECTS)
+	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -o $@ ${LIBS} ${GTEST_INCLUDES}
+${TEST_DIR}/test_readcache: ${TEST_DIR}/test_readcache.cc ${COMMON_OBJECTS} $(TEST_OBJECTS)
 	${CXX} ${CXX_FLAGS} ${INCLUDES} $^ -o $@ ${LIBS} ${GTEST_INCLUDES}
 
 .PHONY : clean
@@ -110,8 +126,13 @@ clean:
 install:
 	cp -r src/include/hlkvds /usr/local/include
 	cp src/libhlkvds.so /usr/local/lib
+	cp -r interface/include/ /usr/local/include/hlkvds/interface
+	cp interface/libckvdb.so /usr/local/lib/
+
 
 .PHONY : uninstall
 uninstall:
 	rm -fr /usr/local/include/hlkvds
 	rm -f /usr/local/lib/libhlkvds.so
+	rm -f /usr/local/lib/libckvdb.so
+
