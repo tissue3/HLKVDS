@@ -38,7 +38,6 @@ int kvdb_open(kvdb_ioctx_t *io, const char* name, bool disable_cache, int cache_
   opts.slru_partition = slru_partition;
   std::string filename = name;
     hlkvds::DB::OpenDB(filename, (hlkvds::DB **)io, opts);
-printf("%p\n", (hlkvds::DB **)io);
   return 0;
 }
 

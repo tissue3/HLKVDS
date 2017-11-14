@@ -5,7 +5,8 @@
 #include "hlkvds/Status.h"
 #include "hlkvds/Write_batch.h"
 #include "hlkvds/Iterator.h"
-
+#include <map>
+#include <string>
 #include "ReadCache.h"
 
 namespace hlkvds {
@@ -48,6 +49,7 @@ private:
     IndexManager* idxMgr_;
     BlockDevice* bdev_;
 
+    std::map<std::string,std::string> rdMap;
     dslab::ReadCache* rdCache_;// readcache, rmd160, slru/lru
 
     MetaStor *metaStor_;

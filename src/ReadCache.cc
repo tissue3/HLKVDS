@@ -3,6 +3,11 @@
 using namespace std;
 
 namespace dslab{
+#ifdef FIO
+        int hits = 0;
+        int hitCandidates = 0;
+#endif
+
 ReadCache::ReadCache(CachePolicy policy, size_t cache_size, int percent){
 	cache_map = CacheMap<string,string>::create(policy, cache_size, cache_size*(100-percent)/100);
 	em = NULL;
@@ -10,12 +15,20 @@ ReadCache::ReadCache(CachePolicy policy, size_t cache_size, int percent){
 
 
 ReadCache::~ReadCache(){
+#ifdef FIO
+        if(dslab::hitCandidates!=0){
+                double hitRate = (double)hits/(double)hitCandidates;
+		cout<<"hits: "<<hits<<"; Candidates: "<<hitCandidates<<endl;
+                cout<<"hit rate: "<<hitRate<<endl;
+        }
+#endif
 	delete cache_map;
 }
 
 void ReadCache::Put(string key, string value){
 	//get footprint
-	WriteLock w_lock(myLock);
+//	WriteLock w_lock(myLock);
+	std::lock_guard < std::mutex > l(mtx_);
 	hlkvds::Kvdb_Key input(value.c_str(),value.length());
 	hlkvds::Kvdb_Digest result;
 	em->ComputeDigest(&input,result);
@@ -48,6 +61,7 @@ void ReadCache::Put(string key, string value){
 				it_dedup = dedup_map.find(it_refer->second);
 				dedup_map.erase(it_dedup);
 				refer_map.erase(it_refer);
+
 				it_refer= refer_map.find(tobeUpdate);
 			}
 		}
@@ -55,9 +69,16 @@ void ReadCache::Put(string key, string value){
 }
 
 bool ReadCache::Get(string key, string &value){
-	ReadLock r_lock(myLock);
+//	ReadLock r_lock(myLock);
+	std::lock_guard < std::mutex > l(mtx_);
 	map<string, string>::iterator it_dedup = dedup_map.find(key);
+	#ifdef FIO
+	hitCandidates++;
+	#endif
 	if( it_dedup!=dedup_map.end() ){
+	#ifdef FIO
+		hits++;
+	#endif
 		return cache_map->Get(it_dedup->second, value);
 	}
 	else{ 
@@ -67,7 +88,8 @@ bool ReadCache::Get(string key, string &value){
 }
 
 void ReadCache::Delete(string key){
-	WriteLock w_lock(myLock);
+	//WriteLock w_lock(myLock);
+	std::lock_guard < std::mutex > l(mtx_);
 	map<string, string>::iterator it_dedup = dedup_map.find(key);
 	if(it_dedup!=dedup_map.end()){
 		multimap<string, string>::iterator it_refer = refer_map.find( it_dedup->second);	

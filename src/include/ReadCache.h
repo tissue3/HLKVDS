@@ -3,16 +3,18 @@
 #include <iostream>
 #include <string.h>
 #include <map>
+#include <mutex>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include "CacheMap.h"
 #include "KeyDigestHandle.h"
+#include "Db_Structure.h"
 
 namespace dslab{
-
-typedef boost::shared_mutex smutex;
-typedef boost::unique_lock< smutex > WriteLock;
-typedef boost::shared_lock< smutex > ReadLock;
+//typedef boost::shared_mutex smutex;
+//typedef boost::unique_lock< smutex > WriteLock;
+//typedef boost::shared_lock< smutex > ReadLock;
+//typedef std::lock_guard < std::mutex > smutex;
 
 class ReadCache{
 	public:
@@ -26,7 +28,8 @@ class ReadCache{
         std::map<std::string, std::string> dedup_map;//map<key,footprint>
         std::multimap<std::string, std::string> refer_map;//<footprint,keys>
 		hlkvds::KeyDigestHandle *em;//input digest to footprint
-		smutex myLock;
+//		smutex myLock;
+		std::mutex mtx_;
 };
 
 }

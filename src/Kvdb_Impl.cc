@@ -175,6 +175,7 @@ Status KVDS::Insert(const char* key, uint32_t key_len, const char* data,
     if (s.ok()) {
         if(!options_.disable_cache && !slice.GetDataLen()){
             rdCache_->Put(slice.GetKeyStr(),slice.GetDataStr());
+	    //rdMap.insert(pair<string,string>(slice.GetKeyStr(), slice.GetDataStr() ) );
         }
     }
 
@@ -194,11 +195,18 @@ Status KVDS::Get(const char* key, uint32_t key_len, string &data) {
     KVSlice slice(key, key_len, NULL, 0);
 
     if(!options_.disable_cache) {
+	/*map<string, string>::iterator iter;
+	iter = rdMap.find(slice.GetKeyStr()); 
+	if(iter!=rdMap.end()){
+		data = iter->second; 
+		return Status::OK();
+	}*/
+
         if(rdCache_->Get(slice.GetKeyStr(), data)) {
             rdCache_->Put(slice.GetKeyStr(), data);
             return Status::OK();
         }
-    }
+   }
 
     res = idxMgr_->GetHashEntry(&slice);
     if (!res) {
@@ -211,6 +219,7 @@ Status KVDS::Get(const char* key, uint32_t key_len, string &data) {
     if (s.ok()) {
         if(!options_.disable_cache) {
             rdCache_->Put(slice.GetKeyStr(), data);
+	//rdMap.insert(pair<string,string>(slice.GetKeyStr(), data));
         }
     }
 
