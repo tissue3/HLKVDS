@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <mutex>
 #include "CacheMap.h"
 
 namespace dslab{
@@ -60,14 +61,16 @@ private:
     std::vector<Node<K,D>* > free_entries;
     Node<K,D> * head, *tail;
     Node<K,D> * entries;
+    std::mutex mtx_;
 };
 
 template<class K , class D>
 bool LRUMap<K,D>::Put(K key , D data, K& update_key, D& update_data, bool same){
     update_key = K();
     update_data = D();
-    Node<K,D> *node = cached_map[key];
     bool poped;
+    std::lock_guard<std::mutex> l(mtx_);
+    Node<K,D> *node = cached_map[key];
     if(node){//key exist
         detach(node);
 	if(!same){
@@ -100,6 +103,7 @@ bool LRUMap<K,D>::Put(K key , D data, K& update_key, D& update_data, bool same){
 
 template<class K , class D>
 bool LRUMap<K,D>::Get(K key, D& data){
+    std::lock_guard<std::mutex> l(mtx_);
     Node<K,D> *node = cached_map[key];
     if(node){
         detach(node);
@@ -108,13 +112,14 @@ bool LRUMap<K,D>::Get(K key, D& data){
 	return true;
     }
     else{
-        data = D();
+        //data = D();
 	return false;
     }
 }
 
 template<class K , class D>
 bool LRUMap<K,D>::Delete(K key){
+    std::lock_guard<std::mutex> l(mtx_);
     Node<K,D> *node = cached_map[key];
     if(node){
         detach(node);

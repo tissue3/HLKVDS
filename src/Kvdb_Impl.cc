@@ -203,7 +203,7 @@ Status KVDS::Get(const char* key, uint32_t key_len, string &data) {
 	}*/
 
         if(rdCache_->Get(slice.GetKeyStr(), data)) {
-            rdCache_->Put(slice.GetKeyStr(), data);
+            //rdCache_->Put(slice.GetKeyStr(), data);
             return Status::OK();
         }
    }
@@ -215,7 +215,7 @@ Status KVDS::Get(const char* key, uint32_t key_len, string &data) {
     }
 
     Status s = dataStor_->ReadData(slice, data);
-
+    //Status s = Status::OK();
     if (s.ok()) {
         if(!options_.disable_cache) {
             rdCache_->Put(slice.GetKeyStr(), data);

@@ -9,7 +9,8 @@
 #include "CacheMap.h"
 #include "KeyDigestHandle.h"
 #include "Db_Structure.h"
-
+#include "hlkvds/Options.h"
+#include "Utils.h"
 namespace dslab{
 //typedef boost::shared_mutex smutex;
 //typedef boost::unique_lock< smutex > WriteLock;
@@ -18,7 +19,7 @@ namespace dslab{
 
 class ReadCache{
 	public:
-		ReadCache(CachePolicy policy, size_t cache_size = 1024, int percent = 50);
+		ReadCache(CachePolicy policy, size_t cache_size = 1024, int percent = 50, bool is_dedup = 0);
 		~ReadCache();
 		void Put(std::string key, std::string value);
 		bool Get(std::string key, std::string& value);
@@ -30,6 +31,7 @@ class ReadCache{
 		hlkvds::KeyDigestHandle *em;//input digest to footprint
 //		smutex myLock;
 		std::mutex mtx_;
+		bool isDedup;
 };
 
 }

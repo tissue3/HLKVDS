@@ -17,7 +17,7 @@ void kvdb_aio_wait_for_complete(kvdb_completion_t c);
 ssize_t kvdb_aio_get_return_value(kvdb_completion_t c);
 int kvdb_aio_create_completion(void *cb_arg, callback_t complete_cb, kvdb_completion_t *c);
 
-int kvdb_open(kvdb_ioctx_t *io, const char* name, bool disable_cache, int cache_size, int cache_policy, int slru_partition);
+int kvdb_open(kvdb_ioctx_t *io, const char* name, bool disable_cache, int cache_size, bool isDedup, int cache_policy, int slru_partition);
 int kvdb_close(kvdb_ioctx_t io);
 int kvdb_aio_read(kvdb_ioctx_t io, char* data, uint64_t offset, uint64_t length, kvdb_completion_t c);
 int kvdb_aio_write(kvdb_ioctx_t io, const char* data, uint64_t offset, uint64_t length, kvdb_completion_t c );

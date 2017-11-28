@@ -24,7 +24,6 @@ public:
 
 #include "LRUMap.h"
 #include "SLRUMap.h"
-
 namespace dslab {
 
 template <class K, class D>

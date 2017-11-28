@@ -8,6 +8,7 @@ namespace hlkvds {
 
 #define DISABLE_CACHE 1
 #define CACHE_SIZE 1024
+#define IS_DEDUP 0
 #define CACHE_POLICY 1 // 0:LRU 1:SLRU
 #define SLRU_PARTITION 50
 

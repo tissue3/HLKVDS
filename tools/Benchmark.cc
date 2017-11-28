@@ -129,7 +129,7 @@ int Create_DB(string filename, int db_size, int segment_K) {
     Options opts;
     opts.hashtable_size = ht_size;
     opts.segment_size = segment_size;
-
+    //opts.disable_cache = false;
     KVTime tv_start;
     KVDS *db = KVDS::Create_KVDS(filename.c_str(), opts);
 

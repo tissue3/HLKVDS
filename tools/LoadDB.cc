@@ -22,12 +22,12 @@ void Open_DB_Test(string filename) {
     Iterator* it = db->NewIterator();
     cout << "Iterator the db: First to Last" << endl;
     for(it->SeekToFirst(); it->Valid(); it->Next()) {
-        cout << it->Key() << ": " << it->Value() << endl;
+        //cout << it->Key() << ": " << it->Value() << endl;
     }
     sleep(3);
     cout << "Iterator the db: Last to First" << endl;
     for(it->SeekToLast(); it->Valid(); it->Prev()) {
-        cout << it->Key() << ": " << it->Value() << endl;
+        //cout << it->Key() << ": " << it->Value() << endl;
     }
     delete it;
     delete db;
