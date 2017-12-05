@@ -66,9 +66,9 @@ int kvdb_aio_write(kvdb_ioctx_t io, const char* data, uint64_t offset, uint64_t 
   char buff[21];
   snprintf(buff, sizeof(buff), "%" PRIu64, offset);
   ((hlkvds::DB *)io)->Insert(buff, strlen(buff), data, length);
-  std::string get_data;
+  //std::string get_data;
 
-  ((hlkvds::DB *)io)->Get(buff, strlen(buff), get_data);
+  //((hlkvds::DB *)io)->Get(buff, strlen(buff), get_data);
 //printf("get:%s\n",get_data);
   return 0;
 }

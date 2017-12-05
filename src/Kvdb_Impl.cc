@@ -151,7 +151,7 @@ KVDS::KVDS(const char* filename, Options opts) :
     idxMgr_ = new IndexManager(sbMgr_, options_);
 
     if(!options_.disable_cache){
-        rdCache_ = new ReadCache(CachePolicy(options_.cache_policy), (size_t) options_.cache_size, options_.slru_partition);
+        rdCache_ = new ReadCache(CachePolicy(options_.cache_policy), (size_t) options_.cache_size, options_.slru_partition, options_.isDedup);
     }
 
     dataStor_ = new SimpleDS_Impl(options_, bdev_, sbMgr_, idxMgr_);
